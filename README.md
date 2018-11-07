@@ -1,6 +1,6 @@
 # cinebox
 
-A new Flutter project.
+A Flutter project for movies.
 
 ## Getting Started
 
