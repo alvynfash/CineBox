@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(
     new MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'CineBox',
       theme: getAppTheme(),
       home: HomeScreen(),
-      color: Colors.black,
+      color: Colors.red,
     ),
   );
 }

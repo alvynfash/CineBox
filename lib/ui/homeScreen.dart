@@ -6,13 +6,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<int> items;
-
-  @override
-  void initState() {
-    items = List.generate(5, (i) => i);
-    super.initState();
-  }
+  final List<int> items = List.generate(200, (i) => i);
 
   @override
   Widget build(BuildContext context) {
@@ -32,19 +26,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Container(
         color: Colors.black,
-        child: buildList(context),
+        child: _buildList(context),
       ),
     );
   }
 
-  Widget getWelcomeBlock(BuildContext context) {
+  Widget _getWelcomeBlock(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
         height: 100.0,
         child: ListTile(
           title: Padding(
-            padding: const EdgeInsets.fromLTRB(10.0, 10.0, 10.0, 5.0),
+            padding: const EdgeInsets.fromLTRB(10, 20, 10, 5),
             child: Text(
               'Get started',
               style: Theme.of(context).primaryTextTheme.headline,
@@ -61,14 +55,14 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             color: Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(2.0)),
+            borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
 
-  Widget getRecommendedHeader(BuildContext context) {
+  Widget _getRecommendedHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15,20,15,0),
+      padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
       child: Text(
         'Recommended',
         style: Theme.of(context).primaryTextTheme.title,
@@ -76,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget getRecommendedList(BuildContext context) {
+  Widget _getRecommendedList(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
@@ -84,21 +78,74 @@ class _HomeScreenState extends State<HomeScreen> {
           ListView.separated(
             itemCount: items.length,
             itemBuilder: (context, index) => Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  color: Color.fromARGB(255, 33, 33, 33),
                   child: Container(
-                    color: Theme.of(context).primaryColor,
-                    height: 200.0,
+                    height: 320.0,
+                    child: Stack(
+                      children: <Widget>[
+                        _getMovieImage(context),
+                        _getThumbbnail(context),
+                        _getMovieDetails(context)
+                      ],
+                    ),
                   ),
                 ),
             shrinkWrap: true,
             physics: ClampingScrollPhysics(),
-            separatorBuilder: (context, index) => Divider(height: 5.0),
+            separatorBuilder: (context, index) => Divider(height: 1),
           ),
         ],
       ),
     );
   }
 
-  Widget buildList(BuildContext context) {
+  Widget _getThumbbnail(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      width: 80,
+      margin: const EdgeInsets.fromLTRB(10, 180, 0, 10),
+    );
+  }
+
+  Widget _getMovieDetails(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(100, 210, 10, 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(
+            'XXX xxx xxxxxxxxx xxx',
+            style: TextStyle(fontSize: 21, color: Colors.white),
+          ),
+          Text(
+            '3.5 *',
+            style: TextStyle(fontSize: 19, color: Colors.white),
+          ),
+          Container(
+            child: FlatButton(
+              color: Theme.of(context).primaryColor,
+              child: Text(
+                'ADD TO WISHLIST',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getMovieImage(BuildContext context) {
+    return Container(
+      height: 200,
+      color: Color.fromARGB(255, 255, 216, 216),
+    );
+  }
+
+  Widget _buildList(BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
         SliverList(
@@ -106,9 +153,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                getWelcomeBlock(context),
-                getRecommendedHeader(context),
-                getRecommendedList(context),
+                _getWelcomeBlock(context),
+                _getRecommendedHeader(context),
+                _getRecommendedList(context),
               ],
             )
           ]),
