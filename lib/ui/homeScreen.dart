@@ -6,7 +6,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<int> items = List.generate(200, (i) => i);
+  final List<int> items = List.generate(5, (i) => i);
 
   @override
   Widget build(BuildContext context) {
@@ -38,14 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 100.0,
         child: ListTile(
           title: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 20, 10, 5),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
             child: Text(
               'Get started',
               style: Theme.of(context).primaryTextTheme.headline,
             ),
           ),
           subtitle: Padding(
-            padding: const EdgeInsets.fromLTRB(10.0, 3.0, 10.0, 10.0),
+            padding: const EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 10.0),
             child: Text(
               'Welcome! Use this app to watch movies & TV shows.',
               style: Theme.of(context).primaryTextTheme.subhead,
@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
         SliverList(
           delegate: SliverChildListDelegate([
             Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 _getWelcomeBlock(context),
                 _getRecommendedHeader(context),

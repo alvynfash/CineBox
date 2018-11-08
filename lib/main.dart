@@ -6,14 +6,14 @@ void main() {
     new MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CineBox',
-      theme: getAppTheme(),
+      theme: _getAppTheme(),
       home: HomeScreen(),
-      color: Colors.red,
+      // home: new Container(),
     ),
   );
 }
 
-ThemeData getAppTheme() {
+ThemeData _getAppTheme() {
   return ThemeData.light().copyWith(
     primaryColor: Color.fromARGB(255, 214, 11, 65),
     primaryColorDark: Colors.red[300],
