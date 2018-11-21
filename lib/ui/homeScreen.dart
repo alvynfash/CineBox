@@ -1,9 +1,12 @@
+import 'dart:math';
+
 import 'package:cinebox/models/movie.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-final String url = "https://api.themoviedb.org/3/list/1?api_key=<<Enter Key here>>&language=en-US";
+final String url =
+    "https://api.themoviedb.org/3/list/1?api_key=<<SecretKey>>&language=en-US";
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -88,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _getRecommendedList(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(5.0),
       child: movies.length == 0
           ? CircularProgressIndicator(
               backgroundColor: Colors.red,
@@ -99,11 +102,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.zero),
-                      color: Color.fromARGB(255, 33, 33, 33),
+                      // color: Color.fromARGB(255, 33, 33, 33),
                       child: Container(
                         height: 320.0,
                         child: Stack(
                           children: <Widget>[
+                            _getDetailsBg(context),
                             _getMovieImage(context, index),
                             _getThumbbnail(context, index),
                             _getMovieDetails(context, index)
@@ -119,8 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 contentPadding: EdgeInsets.all(15),
                                 children: <Widget>[
                                   Text(
-                                    movies[index].overview.toString(), textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 19, fontStyle: FontStyle.italic ),
+                                    movies[index].overview.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 19,
+                                        fontStyle: FontStyle.italic),
                                   )
                                 ],
                               ));
@@ -133,20 +140,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _getDetailsBg(BuildContext context) {
+    return Container(
+      color: Color.fromARGB(255, 33, 33, 33),
+      margin: const EdgeInsets.fromLTRB(0, 180, 0, 0),
+    );
+  }
+
   Widget _getThumbbnail(BuildContext context, int index) {
     var selectedMovie = movies[index];
 
     return Container(
       color: Colors.black,
-      width: 80,
-      margin: const EdgeInsets.fromLTRB(10, 180, 0, 10),
+      width: 85,
+      margin: const EdgeInsets.fromLTRB(5, 160, 0, 5),
       child: selectedMovie.posterPath != null
           ? FadeInImage.memoryNetwork(
-              height: 140,
+              height: 155,
               fit: BoxFit.fitHeight,
               placeholder: kTransparentImage,
               image:
-                  'https://image.tmdb.org/t/p/w92${selectedMovie.posterPath}',
+                  'https://image.tmdb.org/t/p/w154${selectedMovie.posterPath}',
             )
           : null,
     );
@@ -189,19 +203,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _getMovieImage(BuildContext context, int index) {
     var selectedMovie = movies[index];
 
-    return Stack(
-      children: <Widget>[
-        Center(child: CircularProgressIndicator()),
-        FadeInImage.memoryNetwork(
-          height: 200,
-          fit: BoxFit.fitHeight,
-          placeholder: kTransparentImage,
-          image: selectedMovie.backdropPath != null
-              ? 'https://image.tmdb.org/t/p/w300${selectedMovie.backdropPath}'
-              : 'https://github.com/flutter/website/blob/master/src/_includes/code/layout/lakes/images/lake.jpg?raw=true',
-        ),
-      ],
-    );
+    return Container(
+        // height: 200,
+        child: Stack(
+          children: <Widget>[
+            Container(
+              height: 200,
+              child: Center(child: CircularProgressIndicator())
+            ),
+            Container(
+              child: FadeInImage.memoryNetwork(
+                // height: 200,
+                // fit: BoxFit.fitHeight,
+                placeholder: kTransparentImage,
+                image: selectedMovie.backdropPath != null
+                    ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
+                    : 'https://github.com/flutter/website/blob/master/src/_includes/code/layout/lakes/images/lake.jpg?raw=true',
+              ),
+            ),
+          ],
+        ));
   }
 
   Widget _buildPage(BuildContext context) {
