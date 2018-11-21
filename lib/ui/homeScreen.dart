@@ -1,4 +1,8 @@
+import 'package:cinebox/models/movie.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:transparent_image/transparent_image.dart';
+
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -6,27 +10,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<int> items = List.generate(5, (i) => i);
+  final List<int> items = List.generate(200, (i) => i);
+  List<Movie> movies = new List<Movie>();
+
+  @override
+  initState() {
+    getMovies();
+    setState(() {
+      super.initState();
+    });
+  }
+
+  Future getMovies() async {
+    var dio = new Dio();
+    var mylist = new List<Movie>();
+    var response = await dio.get(url);
+    if (response.statusCode == 200) {
+      try {
+        mylist.addAll(
+            List.from(response.data["items"]).map((f) => Movie.fromJson(f)));
+      } catch (e) {}
+    }
+    setState(() {
+      movies = mylist;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.menu),
-          onPressed: () {},
-        ),
-        title: Text('CineBox'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {},
-          )
-        ],
-      ),
       body: Container(
         color: Colors.black,
-        child: _buildList(context),
+        child: _buildPage(context),
       ),
     );
   }
@@ -38,14 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 100.0,
         child: ListTile(
           title: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 2.5),
             child: Text(
               'Get started',
               style: Theme.of(context).primaryTextTheme.headline,
             ),
           ),
           subtitle: Padding(
-            padding: const EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 10.0),
+            padding: const EdgeInsets.fromLTRB(10.0, 2.5, 10.0, 10.0),
             child: Text(
               'Welcome! Use this app to watch movies & TV shows.',
               style: Theme.of(context).primaryTextTheme.subhead,
@@ -73,42 +88,71 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _getRecommendedList(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: <Widget>[
-          ListView.separated(
-            itemCount: items.length,
-            itemBuilder: (context, index) => Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                  color: Color.fromARGB(255, 33, 33, 33),
-                  child: Container(
-                    height: 320.0,
-                    child: Stack(
-                      children: <Widget>[
-                        _getMovieImage(context),
-                        _getThumbbnail(context),
-                        _getMovieDetails(context)
-                      ],
+      child: movies.length == 0
+          ? CircularProgressIndicator(
+              backgroundColor: Colors.red,
+            )
+          : ListView.separated(
+              itemCount: movies.length,
+              itemBuilder: (context, index) => GestureDetector(
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero),
+                      color: Color.fromARGB(255, 33, 33, 33),
+                      child: Container(
+                        height: 320.0,
+                        child: Stack(
+                          children: <Widget>[
+                            _getMovieImage(context, index),
+                            _getThumbbnail(context, index),
+                            _getMovieDetails(context, index)
+                          ],
+                        ),
+                      ),
                     ),
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) => SimpleDialog(
+                                title: Center(child: const Text('About')),
+                                contentPadding: EdgeInsets.all(15),
+                                children: <Widget>[
+                                  Text(
+                                    movies[index].overview.toString(), textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 19, fontStyle: FontStyle.italic ),
+                                  )
+                                ],
+                              ));
+                    },
                   ),
-                ),
-            shrinkWrap: true,
-            physics: ClampingScrollPhysics(),
-            separatorBuilder: (context, index) => Divider(height: 1),
-          ),
-        ],
-      ),
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              separatorBuilder: (context, index) => Divider(height: 1),
+            ),
     );
   }
 
-  Widget _getThumbbnail(BuildContext context) {
+  Widget _getThumbbnail(BuildContext context, int index) {
+    var selectedMovie = movies[index];
+
     return Container(
       color: Colors.black,
       width: 80,
       margin: const EdgeInsets.fromLTRB(10, 180, 0, 10),
+      child: selectedMovie.posterPath != null
+          ? FadeInImage.memoryNetwork(
+              height: 140,
+              fit: BoxFit.fitHeight,
+              placeholder: kTransparentImage,
+              image:
+                  'https://image.tmdb.org/t/p/w92${selectedMovie.posterPath}',
+            )
+          : null,
     );
   }
 
-  Widget _getMovieDetails(BuildContext context) {
+  Widget _getMovieDetails(BuildContext context, int index) {
+    var selectedMovie = movies[index];
     return Container(
       margin: const EdgeInsets.fromLTRB(100, 210, 10, 10),
       child: Column(
@@ -116,12 +160,15 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
-            'XXX xxx xxxxxxxxx xxx',
-            style: TextStyle(fontSize: 21, color: Colors.white),
+            selectedMovie.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 17.5, color: Colors.white),
           ),
           Text(
-            '3.5 *',
-            style: TextStyle(fontSize: 19, color: Colors.white),
+            '${selectedMovie.voteAverage.toString()} *',
+            maxLines: 1,
+            style: TextStyle(fontSize: 14.5, color: Colors.white),
           ),
           Container(
             child: FlatButton(
@@ -138,16 +185,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _getMovieImage(BuildContext context) {
-    return Container(
-      height: 200,
-      color: Color.fromARGB(255, 255, 216, 216),
+  Widget _getMovieImage(BuildContext context, int index) {
+    var selectedMovie = movies[index];
+
+    return Stack(
+      children: <Widget>[
+        Center(child: CircularProgressIndicator()),
+        FadeInImage.memoryNetwork(
+          height: 200,
+          fit: BoxFit.fitHeight,
+          placeholder: kTransparentImage,
+          image: selectedMovie.backdropPath != null
+              ? 'https://image.tmdb.org/t/p/w300${selectedMovie.backdropPath}'
+              : 'https://github.com/flutter/website/blob/master/src/_includes/code/layout/lakes/images/lake.jpg?raw=true',
+        ),
+      ],
     );
   }
 
-  Widget _buildList(BuildContext context) {
+  Widget _buildPage(BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
+        SliverAppBar(
+          floating: true,
+          snap: true,
+          leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {},
+          ),
+          title: Text('CineBox'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {},
+            )
+          ],
+        ),
         SliverList(
           delegate: SliverChildListDelegate([
             Column(
