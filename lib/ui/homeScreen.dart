@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+final String url = "https://api.themoviedb.org/3/list/1?api_key=<<Enter Key here>>&language=en-US";
 
 class HomeScreen extends StatefulWidget {
   @override
