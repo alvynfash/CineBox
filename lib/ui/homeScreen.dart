@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 final String url =
-    "https://api.themoviedb.org/3/list/1?api_key=<<SecretKey>>&language=en-US";
+    "https://api.themoviedb.org/3/list/1?api_key=1a43f1f22e3cf15ce2cfd8ca5af13e6f&language=en-US";
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<int> items = List.generate(200, (i) => i);
+  // final List<int> items = List.generate(200, (i) => i);
   List<Movie> movies = new List<Movie>();
 
   @override
@@ -93,9 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: movies.length == 0
-          ? CircularProgressIndicator(
-              backgroundColor: Colors.red,
-            )
+          ? Container(
+              height: 200,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: CircularProgressIndicator(
+                        backgroundColor: Colors.red,
+                      ),
+                    )
+                  ]))
           : ListView.separated(
               itemCount: movies.length,
               itemBuilder: (context, index) => GestureDetector(
@@ -206,23 +214,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
         // height: 200,
         child: Stack(
-          children: <Widget>[
-            Container(
-              height: 200,
-              child: Center(child: CircularProgressIndicator())
-            ),
-            Container(
-              child: FadeInImage.memoryNetwork(
-                // height: 200,
-                // fit: BoxFit.fitHeight,
-                placeholder: kTransparentImage,
-                image: selectedMovie.backdropPath != null
-                    ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
-                    : 'https://github.com/flutter/website/blob/master/src/_includes/code/layout/lakes/images/lake.jpg?raw=true',
-              ),
-            ),
-          ],
-        ));
+      children: <Widget>[
+        Container(
+            height: 200,
+            child: Center(
+              child: CircularProgressIndicator(),
+            )),
+        Container(
+          child: FadeInImage.memoryNetwork(
+            // height: 200,
+            // fit: BoxFit.fitHeight,
+            placeholder: kTransparentImage,
+            image: selectedMovie.backdropPath != null
+                ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
+                : 'https://www.movieinsider.com/images/none_175px.jpg',
+          ),
+        ),
+      ],
+    ));
   }
 
   Widget _buildPage(BuildContext context) {
