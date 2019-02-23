@@ -1,12 +1,30 @@
-import 'dart:math';
+import 'dart:async';
 
 import 'package:cinebox/models/movie.dart';
+import 'package:cinebox/ui/rankDisplayWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-final String url =
-    "https://api.themoviedb.org/3/list/1?api_key=1a43f1f22e3cf15ce2cfd8ca5af13e6f&language=en-US";
+const String ApiKey = "api_key=1a43f1f22e3cf15ce2cfd8ca5af13e6f";
+
+final String topRatedUrl =
+    "https://api.themoviedb.org/3/movie/top_rated?page=1&language=en-US&$ApiKey";
+
+final String latestUrl =
+    "https://api.themoviedb.org/3/movie/latest?language=en-US&$ApiKey";
+
+final String nowPlayingUrl =
+    "https://api.themoviedb.org/3/movie/now_playing?page=1&language=en-US&$ApiKey";
+
+final String popularUrl =
+    "https://api.themoviedb.org/3/movie/popular?page=1&language=en-US&$ApiKey";
+
+final String upcomingUrl =
+    "https://api.themoviedb.org/3/movie/upcoming?page=1&language=en-US&$ApiKey";
+
+enum MovieList { TopRated, Latest, NowPlaying, Popular, Upcoming }
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -14,25 +32,49 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // final List<int> items = List.generate(200, (i) => i);
   List<Movie> movies = new List<Movie>();
 
   @override
   initState() {
-    getMovies();
+    getMovies(MovieList.TopRated);
     setState(() {
       super.initState();
     });
   }
 
-  Future getMovies() async {
+  Future getMovies(MovieList movieType) async {
+    String urlToUse;
+    String resultsKey = "results";
+
     var dio = new Dio();
     var mylist = new List<Movie>();
-    var response = await dio.get(url);
+
+    switch (movieType) {
+      case MovieList.TopRated:
+        urlToUse = topRatedUrl;
+        break;
+
+      case MovieList.Latest:
+        urlToUse = latestUrl;
+        break;
+
+      case MovieList.NowPlaying:
+        urlToUse = nowPlayingUrl;
+        break;
+
+      case MovieList.Popular:
+        urlToUse = popularUrl;
+        break;
+
+      case MovieList.Upcoming:
+        urlToUse = upcomingUrl;
+        break;
+    }
+    var response = await dio.get(urlToUse);
     if (response.statusCode == 200) {
       try {
         mylist.addAll(
-            List.from(response.data["items"]).map((f) => Movie.fromJson(f)));
+            List.from(response.data[resultsKey]).map((f) => Movie.fromJson(f)));
       } catch (e) {}
     }
     setState(() {
@@ -90,27 +132,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _getRecommendedList(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: movies.length == 0
-          ? Container(
-              height: 200,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: CircularProgressIndicator(
-                        backgroundColor: Colors.red,
-                      ),
-                    )
-                  ]))
-          : ListView.separated(
+    return movies.length == 0
+        ? Padding(
+            padding: const EdgeInsets.all(100),
+            child: SpinKitThreeBounce(
+              color: Theme.of(context).primaryColor,
+              size: 40,
+            ),
+          )
+        : Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: ListView.separated(
               itemCount: movies.length,
               itemBuilder: (context, index) => GestureDetector(
                     child: Card(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.zero),
-                      // color: Color.fromARGB(255, 33, 33, 33),
+                      color: Colors.transparent,
                       child: Container(
                         height: 320.0,
                         child: Stack(
@@ -145,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
               physics: ClampingScrollPhysics(),
               separatorBuilder: (context, index) => Divider(height: 1),
             ),
-    );
+          );
   }
 
   Widget _getDetailsBg(BuildContext context) {
@@ -159,7 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
     var selectedMovie = movies[index];
 
     return Container(
-      color: Colors.black,
       width: 85,
       margin: const EdgeInsets.fromLTRB(5, 160, 0, 5),
       child: selectedMovie.posterPath != null
@@ -177,31 +214,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _getMovieDetails(BuildContext context, int index) {
     var selectedMovie = movies[index];
     return Container(
-      margin: const EdgeInsets.fromLTRB(100, 210, 10, 10),
+      margin: const EdgeInsets.fromLTRB(100, 170, 10, 5),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          FlatButton(
+            color: Theme.of(context).primaryColor,
+            child: Text(
+              'ADD TO WISHLIST',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () {},
+          ),
+          RankDisplayWidget(selectedMovie.voteAverage),
           Text(
             selectedMovie.title,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 17.5, color: Colors.white),
-          ),
-          Text(
-            '${selectedMovie.voteAverage.toString()} *',
-            maxLines: 1,
-            style: TextStyle(fontSize: 14.5, color: Colors.white),
-          ),
-          Container(
-            child: FlatButton(
-              color: Theme.of(context).primaryColor,
-              child: Text(
-                'ADD TO WISHLIST',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {},
-            ),
+            style: TextStyle(
+                fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -212,26 +244,31 @@ class _HomeScreenState extends State<HomeScreen> {
     var selectedMovie = movies[index];
 
     return Container(
-        // height: 200,
-        child: Stack(
-      children: <Widget>[
-        Container(
+      child: Stack(
+        children: <Widget>[
+          Container(
+            color: Colors.black.withOpacity(0.9),
             height: 200,
             child: Center(
-              child: CircularProgressIndicator(),
-            )),
-        Container(
-          child: FadeInImage.memoryNetwork(
-            // height: 200,
-            // fit: BoxFit.fitHeight,
-            placeholder: kTransparentImage,
-            image: selectedMovie.backdropPath != null
-                ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
-                : 'https://www.movieinsider.com/images/none_175px.jpg',
+              child: SpinKitCubeGrid(
+                color: Colors.red,
+                size: 40,
+              ),
+            ),
           ),
-        ),
-      ],
-    ));
+          Container(
+            child: FadeInImage.memoryNetwork(
+              // height: 200,
+              // fit: BoxFit.fitHeight,
+              placeholder: kTransparentImage,
+              image: selectedMovie.backdropPath != null
+                  ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
+                  : 'https://www.movieinsider.com/images/none_175px.jpg',
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPage(BuildContext context) {
@@ -253,16 +290,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         SliverList(
-          delegate: SliverChildListDelegate([
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                _getWelcomeBlock(context),
-                _getRecommendedHeader(context),
-                _getRecommendedList(context),
-              ],
-            )
-          ]),
+          delegate: SliverChildListDelegate(
+            [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _getWelcomeBlock(context),
+                  _getRecommendedHeader(context),
+                  _getRecommendedList(context),
+                ],
+              )
+            ],
+          ),
         )
       ],
     );
