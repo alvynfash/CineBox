@@ -43,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future getMovies(MovieList movieType) async {
-    String urlToUse;
     String resultsKey = "results";
+    String urlToUse;
 
     var dio = new Dio();
     var mylist = new List<Movie>();
