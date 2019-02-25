@@ -8,13 +8,24 @@ class RankDisplayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color _rankColor;
-Color _rankTextColor;
+    Color _rankTextColor;
+    double percentage;
+    double roughStarCount;
+    int starCount;
 
-    var percentage = _rank / 10;
-    var roughStarCount = percentage * 5;
-    var starCount = roughStarCount.ceil();
+    if (_rank != null) {
+      percentage = _rank / 10;
+      roughStarCount = percentage * 5;
+      starCount = roughStarCount.ceil();
+    } else
+      starCount = 0;
 
     switch (starCount) {
+      case 0:
+        _rankColor = Colors.transparent;
+        _rankTextColor = Colors.transparent;
+        break;
+
       case 1:
       case 2:
         _rankColor = Colors.red;
@@ -23,13 +34,13 @@ Color _rankTextColor;
 
       case 3:
         _rankColor = Colors.yellow;
-         _rankTextColor = Colors.black;
+        _rankTextColor = Colors.black;
         break;
 
       case 4:
       case 5:
         _rankColor = Colors.green;
-         _rankTextColor = Colors.white;
+        _rankTextColor = Colors.white;
         break;
       default:
     }

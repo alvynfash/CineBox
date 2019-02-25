@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_backdrop/flutter_backdrop.dart';
+// import 'package:backdrop/backdrop.dart';
 
 const String ApiKey = "api_key=1a43f1f22e3cf15ce2cfd8ca5af13e6f";
 
 final String topRatedUrl =
     "https://api.themoviedb.org/3/movie/top_rated?page=1&language=en-US&$ApiKey";
-
-final String latestUrl =
-    "https://api.themoviedb.org/3/movie/latest?language=en-US&$ApiKey";
 
 final String nowPlayingUrl =
     "https://api.themoviedb.org/3/movie/now_playing?page=1&language=en-US&$ApiKey";
@@ -24,19 +23,42 @@ final String popularUrl =
 final String upcomingUrl =
     "https://api.themoviedb.org/3/movie/upcoming?page=1&language=en-US&$ApiKey";
 
-enum MovieList { TopRated, Latest, NowPlaying, Popular, Upcoming }
+enum MovieList { TopRated, NowPlaying, Popular, Upcoming }
+
+class MoveOption {
+  String title;
+  MovieList movieType;
+
+  MoveOption(this.title, this.movieType);
+}
 
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => new _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   List<Movie> movies = new List<Movie>();
+  List<MoveOption> options = new List<MoveOption>();
+  MoveOption selectedMovieOption;
+  AnimationController animController;
+  Backdrop scaffold;
 
   @override
   initState() {
-    getMovies(MovieList.TopRated);
+    animController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 100),
+      value: 1.0,
+    );
+
+    options.add(MoveOption("TopRated", MovieList.TopRated));
+    options.add(MoveOption("NowPlaying", MovieList.NowPlaying));
+    options.add(MoveOption("Popular", MovieList.Popular));
+    options.add(MoveOption("Upcoming", MovieList.Upcoming));
+
+    getMovies(options.first.movieType);
     setState(() {
       super.initState();
     });
@@ -49,13 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
     var dio = new Dio();
     var mylist = new List<Movie>();
 
+    setState(() {
+      selectedMovieOption = options.firstWhere((x) => x.movieType == movieType);
+      movies = mylist;
+    });
+
     switch (movieType) {
       case MovieList.TopRated:
         urlToUse = topRatedUrl;
-        break;
-
-      case MovieList.Latest:
-        urlToUse = latestUrl;
         break;
 
       case MovieList.NowPlaying:
@@ -74,20 +97,116 @@ class _HomeScreenState extends State<HomeScreen> {
     if (response.statusCode == 200) {
       try {
         mylist.addAll(
-            List.from(response.data[resultsKey]).map((f) => Movie.fromJson(f)));
-      } catch (e) {}
+          List.from(response.data[resultsKey]).map(
+            (f) => Movie.fromJson(f),
+          ),
+        );
+
+      } catch (e) {} finally {
+        setState(() {
+          movies = mylist;
+        });
+      }
     }
-    setState(() {
-      movies = mylist;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    // scaffold = BackdropScaffold(
+    //     title: Text('CineBox'),
+    //     // controller: animController,
+    //     headerHeight: 350,
+    //     actions: <Widget>[
+    //       IconButton(
+    //         icon: Icon(Icons.search),
+    //         onPressed: () {},
+    //       )
+    //     ],
+    //     body: Container(
+    //       color: Colors.black,
+    //       child: _buildPage(context),
+    //     ),
+    //     backpanel: _buildFilterOptions(context));
+
+    scaffold = Backdrop(
+      appBarAnimatedLeadingMenuIcon: AnimatedIcons.close_menu,
+      appBarTitle: Text('CineBox'),
+      appBarActions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.search),
+          onPressed: () {},
+        )
+      ],
+      backLayer: _buildFilterOptions(context),
+      // toggleFrontLayer: _toggleFrontLayer,
+      frontLayer: Container(
         color: Colors.black,
         child: _buildPage(context),
+      ),
+      // frontHeader: null,
+      frontHeaderHeight: 0,
+      titleVisibleOnPanelClosed: false,
+      // shape: null
+    );
+
+    return scaffold;
+  }
+
+  Widget _buildFilterOptions(BuildContext context) {
+    return Container(
+      color: Theme.of(context).primaryColor,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 40, 0, 40),
+        child: ListView.builder(
+          itemCount: options.length,
+          itemBuilder: (_, index) {
+            var option = options[index];
+            return GestureDetector(
+              child: ListTile(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      option.title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                      ),
+                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.only(left: 10),
+                    //   child: Icon(
+                    //     Icons.check_circle,
+                    //     color: option == selectedMovieOption
+                    //         ? Colors.white
+                    //         : Colors.transparent,
+                    //   ),
+                    // ),
+                  ],
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 90,
+                    right: 90,
+                  ),
+                  child: Container(
+                    height: 3,
+                    color: option == selectedMovieOption
+                        ? Colors.white
+                        : Colors.transparent,
+                  ),
+                ),
+              ),
+              onTap: () {
+                setState(() {
+                  scaffold.close();
+                  getMovies(option.movieType);
+                });
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -125,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
       child: Text(
-        'Recommended',
+        selectedMovieOption.title,
         style: Theme.of(context).primaryTextTheme.title,
       ),
     );
@@ -258,8 +377,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Container(
             child: FadeInImage.memoryNetwork(
-              // height: 200,
-              // fit: BoxFit.fitHeight,
               placeholder: kTransparentImage,
               image: selectedMovie.backdropPath != null
                   ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
@@ -274,21 +391,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildPage(BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
-        SliverAppBar(
-          floating: true,
-          snap: true,
-          leading: IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {},
-          ),
-          title: Text('CineBox'),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.search),
-              onPressed: () {},
-            )
-          ],
-        ),
         SliverList(
           delegate: SliverChildListDelegate(
             [
