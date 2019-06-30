@@ -8,6 +8,7 @@ void main() {
       title: 'CineBox',
       theme: _getAppTheme(),
       home: HomeScreen(),
+    
       // home: new Container(),
     ),
   );
