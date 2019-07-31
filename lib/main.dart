@@ -8,7 +8,7 @@ void main() {
       title: 'CineBox',
       theme: _getAppTheme(),
       home: HomeScreen(),
-    
+
       // home: new Container(),
     ),
   );
@@ -16,7 +16,8 @@ void main() {
 
 ThemeData _getAppTheme() {
   return ThemeData.light().copyWith(
-    primaryColor: Color.fromARGB(255, 214, 11, 65),
+    // primaryColor: Color.fromARGB(255, 214, 11, 65),
+    primaryColor: Colors.blue,
     primaryColorDark: Colors.red[300],
     primaryColorLight: Colors.red[200],
     primaryTextTheme: ThemeData.light()

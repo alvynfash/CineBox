@@ -21,6 +21,7 @@ dependencies:
   flutter_backdrop:
   pull_to_refresh:
   verbal_expressions:
+  rubber:
   
   flutter:
     sdk: flutter

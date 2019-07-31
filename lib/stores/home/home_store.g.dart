@@ -9,42 +9,42 @@ part of 'home_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars
 
 mixin _$HomeStore on _HomeStore, Store {
-  Computed<int> _$moviesCountComputed;
+  Computed<int> _$movieSectionsCountComputed;
 
   @override
-  int get moviesCount =>
-      (_$moviesCountComputed ??= Computed<int>(() => super.moviesCount)).value;
+  int get movieSectionsCount => (_$movieSectionsCountComputed ??=
+          Computed<int>(() => super.movieSectionsCount))
+      .value;
 
-  final _$selectedMovieOptionAtom =
-      Atom(name: '_HomeStore.selectedMovieOption');
+  final _$movieSectionsAtom = Atom(name: '_HomeStore.movieSections');
 
   @override
-  MoveOption get selectedMovieOption {
-    _$selectedMovieOptionAtom.reportObserved();
-    return super.selectedMovieOption;
+  ObservableList<Map<MoveOption, List<Result>>> get movieSections {
+    _$movieSectionsAtom.reportObserved();
+    return super.movieSections;
   }
 
   @override
-  set selectedMovieOption(MoveOption value) {
-    _$selectedMovieOptionAtom.context
-        .checkIfStateModificationsAreAllowed(_$selectedMovieOptionAtom);
-    super.selectedMovieOption = value;
-    _$selectedMovieOptionAtom.reportChanged();
+  set movieSections(ObservableList<Map<MoveOption, List<Result>>> value) {
+    _$movieSectionsAtom.context
+        .checkIfStateModificationsAreAllowed(_$movieSectionsAtom);
+    super.movieSections = value;
+    _$movieSectionsAtom.reportChanged();
   }
 
-  final _$moviesAtom = Atom(name: '_HomeStore.movies');
+  final _$isBusyAtom = Atom(name: '_HomeStore.isBusy');
 
   @override
-  ObservableList<Result> get movies {
-    _$moviesAtom.reportObserved();
-    return super.movies;
+  bool get isBusy {
+    _$isBusyAtom.reportObserved();
+    return super.isBusy;
   }
 
   @override
-  set movies(ObservableList<Result> value) {
-    _$moviesAtom.context.checkIfStateModificationsAreAllowed(_$moviesAtom);
-    super.movies = value;
-    _$moviesAtom.reportChanged();
+  set isBusy(bool value) {
+    _$isBusyAtom.context.checkIfStateModificationsAreAllowed(_$isBusyAtom);
+    super.isBusy = value;
+    _$isBusyAtom.reportChanged();
   }
 
   final _$initialiseAsyncAction = AsyncAction('initialise');

@@ -1,5 +1,8 @@
+import 'package:cinebox/models/movie_option.dart';
+import 'package:cinebox/models/movie_result.dart';
 import 'package:cinebox/stores/home/home_store.dart';
 import 'package:cinebox/ui/rankDisplayWidget.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -7,8 +10,9 @@ import 'package:flutter_backdrop/flutter_backdrop.dart';
 import "package:pull_to_refresh/pull_to_refresh.dart";
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import 'movieDetailScreen.dart';
+
 class HomeScreen extends StatefulWidget {
-  final HomeStore homestore = HomeStore();
   @override
   _HomeScreenState createState() => new _HomeScreenState();
 }
@@ -19,8 +23,8 @@ class _HomeScreenState extends State<HomeScreen>
   AnimationController animController;
   RefreshController smController;
   Backdrop scaffold;
+  final HomeStore homestore = HomeStore();
 
-  HomeStore homestore;
   @override
   initState() {
     animController = AnimationController(
@@ -28,282 +32,306 @@ class _HomeScreenState extends State<HomeScreen>
       duration: Duration(milliseconds: 100),
       value: 1.0,
     );
-
     smController = RefreshController();
-    homestore = widget.homestore;
     homestore.initialise();
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    scaffold = Backdrop(
-      appBarAnimatedLeadingMenuIcon: AnimatedIcons.close_menu,
-      appBarTitle: Text('CineBox'),
-      appBarActions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.search),
-          onPressed: () {},
-        )
-      ],
-      backLayer: _buildFilterOptions(context),
-      // toggleFrontLayer: _toggleFrontLayer,
-      frontLayer: Container(
-        color: Colors.black,
-        child: _buildPage(context),
-      ),
-      // frontHeader: null,
-      frontHeaderHeight: 0,
-      titleVisibleOnPanelClosed: false,
-      // shape: null
-    );
+    return Scaffold(
+      body: Observer(
+        builder: (_) => CustomScrollView(
+          slivers: <Widget>[
+            // SliverAppBar(
+            //   title: Text('SliverAppBar'),
+            //   backgroundColor: Colors.blue.withOpacity(.125),
+            //   expandedHeight: 0,
+            //   floating: true,
+            //   // pinned: true,
+            //   // flexibleSpace: FlexibleSpaceBar(
+            //   //   background: Image.asset('assets/forest.jpg', fit: BoxFit.cover),
+            //   // ),
+            // ),
 
-    return scaffold;
+            // SliverFillRemaining(
+            //   child: Container(
+            //     color: Colors.blue.withOpacity(.15),
+            //     child: _buildPage(context),
+            //   ),
+            // ),
+
+            SliverFixedExtentList(
+              itemExtent: MediaQuery.of(context).size.height,
+              delegate: SliverChildListDelegate(
+                [
+                  ListView(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery.of(context).size.height,
+                        child: homestore.isBusy
+                            ? Center(
+                                child: SpinKitThreeBounce(
+                                  color: Theme.of(context).primaryColor,
+                                  size: 40,
+                                ),
+                              )
+                            : _getMovieLists(context),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.black,
+    );
   }
 
   Widget _buildFilterOptions(BuildContext context) {
-    return Container(
-      color: Theme.of(context).primaryColor,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 40, 0, 40),
-        child: ListView.builder(
-          itemCount: homestore.movieOptions.length,
-          itemBuilder: (_, index) {
-            var option = homestore.movieOptions[index];
-            return GestureDetector(
-              child: ListTile(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      option.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 25,
-                      ),
-                    ),
-                  ],
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 90,
-                    right: 90,
-                  ),
-                  child: Container(
-                    height: 3,
-                    color: option == homestore.selectedMovieOption
-                        ? Colors.white
-                        : Colors.transparent,
-                  ),
-                ),
-              ),
-              onTap: () {
-                homestore.getMovies(option);
-                setState(() {
-                  scaffold.close();
-                });
-              },
-            );
-          },
-        ),
-      ),
-    );
+    // return Container(
+    //   color: Theme.of(context).primaryColor,
+    //   child: Padding(
+    //     padding: const EdgeInsets.fromLTRB(0, 40, 0, 40),
+    //     child: ListView.builder(
+    //       itemCount: homestore.movieOptions.length,
+    //       // shrinkWrap: true,
+    //       itemBuilder: (_, index) {
+    //         var option = homestore.movieOptions[index];
+    //         return GestureDetector(
+    //           child: ListTile(
+    //             title: Row(
+    //               mainAxisAlignment: MainAxisAlignment.center,
+    //               children: <Widget>[
+    //                 Text(
+    //                   option.title,
+    //                   textAlign: TextAlign.center,
+    //                   style: TextStyle(
+    //                     color: Colors.white,
+    //                     fontSize: 25,
+    //                   ),
+    //                 ),
+    //               ],
+    //             ),
+    //             subtitle: Padding(
+    //               padding: const EdgeInsets.only(
+    //                 left: 90,
+    //                 right: 90,
+    //               ),
+    //               child: Container(
+    //                 height: 3,
+    //                 color: option == homestore.selectedMovieOption
+    //                     ? Colors.white
+    //                     : Colors.transparent,
+    //               ),
+    //             ),
+    //           ),
+    //           onTap: () {
+    //             homestore.getMovies(option);
+    //             setState(() {
+    //               scaffold.close();
+    //             });
+    //           },
+    //         );
+    //       },
+    //     ),
+    //   ),
+    // );
   }
 
   Widget _getWelcomeBlock(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        height: 100.0,
-        child: ListTile(
-          title: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 2.5),
-            child: Text(
-              'Get started',
-              style: Theme.of(context).primaryTextTheme.headline,
+    return Dismissible(
+      key: GlobalKey(debugLabel: "welcomeBlock"),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 24, 12, 8),
+        child: Container(
+          height: 100.0,
+          child: ListTile(
+            title: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 2.5),
+              child: Text(
+                'Get started',
+                style: Theme.of(context).primaryTextTheme.headline,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.fromLTRB(10.0, 2.5, 10.0, 10.0),
+              child: Text(
+                'Welcome! Use this app to watch movies & TV shows.',
+                style: Theme.of(context).primaryTextTheme.subhead,
+              ),
             ),
           ),
-          subtitle: Padding(
-            padding: const EdgeInsets.fromLTRB(10.0, 2.5, 10.0, 10.0),
-            child: Text(
-              'Welcome! Use this app to watch movies & TV shows.',
-              style: Theme.of(context).primaryTextTheme.subhead,
-            ),
-          ),
-        ),
-        decoration: BoxDecoration(
-            shape: BoxShape.rectangle,
-            color: Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  Widget _getRecommendedHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
-      child: Text(
-        homestore.selectedMovieOption.title,
-        style: Theme.of(context).primaryTextTheme.title,
-      ),
-    );
-  }
-
-  Widget _getRecommendedList(BuildContext context) {
-    return homestore.movies.length == 0
-        ? Padding(
-            padding: const EdgeInsets.all(100),
-            child: SpinKitThreeBounce(
+          decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
               color: Theme.of(context).primaryColor,
-              size: 40,
-            ),
-          )
-        : ListView.separated(
-            itemCount: homestore.movies.length,
-            itemBuilder: (context, index) => GestureDetector(
-                  child: Card(
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                    color: Colors.transparent,
-                    child: Container(
-                      height: 320.0,
-                      child: Stack(
-                        children: <Widget>[
-                          _getDetailsBg(context),
-                          _getMovieImage(context, index),
-                          _getThumbbnail(context, index),
-                          _getMovieDetails(context, index)
-                        ],
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext context) => SimpleDialog(
-                              title: Center(child: const Text('About')),
-                              contentPadding: EdgeInsets.all(15),
-                              children: <Widget>[
-                                Text(
-                                  homestore.movies[index].overview.toString(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 19,
-                                      fontStyle: FontStyle.italic),
-                                )
-                              ],
-                            ));
-                  },
-                ),
-            shrinkWrap: true,
-            physics: ClampingScrollPhysics(),
-            separatorBuilder: (context, index) => Divider(height: 1),
-            // ),
+              borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+
+  Widget _getMovieLists(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 0, bottom: 8),
+      child: ListView.separated(
+        itemCount: homestore.movieSectionsCount,
+        itemBuilder: (context, index) => MovieSection(
+          homestore.movieSections[index],
+        ),
+        separatorBuilder: (context, index) => Container(
+          height: 20,
+        ),
+      ),
+    );
+  }
+
+  void showDetails(Result movie) {
+    // Navigator.of(context).push(
+    //     MaterialPageRoute(builder: (_) => MovieDetailScreen(movie: movie)));
+
+    Navigator.of(context).push(
+      PageRouteBuilder<MovieDetailScreen>(
+        pageBuilder: (_, __, ___) => MovieDetailScreen(movie: movie),
+        transitionsBuilder: (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
           );
-  }
-
-  Widget _getDetailsBg(BuildContext context) {
-    return Container(
-      color: Color.fromARGB(255, 33, 33, 33),
-      margin: const EdgeInsets.fromLTRB(0, 180, 0, 0),
+        },
+      ),
     );
   }
 
-  Widget _getThumbbnail(BuildContext context, int index) {
-    var selectedMovie = homestore.movies[index];
-
+  Widget MovieSection(Map<MoveOption, List<Result>> option) {
+    bool isNowPlaying = option.keys.first.movieType == MovieList.NowPlaying;
     return Container(
-      width: 85,
-      margin: const EdgeInsets.fromLTRB(5, 160, 0, 5),
-      child: selectedMovie.posterPath != null
-          ? FadeInImage.memoryNetwork(
-              height: 155,
-              fit: BoxFit.fitHeight,
-              placeholder: kTransparentImage,
-              image:
-                  'https://image.tmdb.org/t/p/w154${selectedMovie.posterPath}',
-            )
-          : null,
-    );
-  }
-
-  Widget _getMovieDetails(BuildContext context, int index) {
-    var selectedMovie = homestore.movies[index];
-    return Container(
-      margin: const EdgeInsets.fromLTRB(100, 170, 10, 5),
+      height: isNowPlaying ? 320 : 280,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          FlatButton(
-            color: Theme.of(context).primaryColor,
-            child: Text(
-              'ADD TO WISHLIST',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () {},
-          ),
-          RankDisplayWidget(selectedMovie.voteAverage),
           Text(
-            selectedMovie.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            option.keys.first.title,
             style: TextStyle(
-                fontSize: 25, color: Colors.white, fontWeight: FontWeight.bold),
+                fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Padding(
+              padding: isNowPlaying
+                  ? const EdgeInsets.only(top: 24)
+                  : const EdgeInsets.only(top: 16),
+              child: Container(
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: option.values.first.length,
+                  itemBuilder: (context, index) => MovieCell(
+                    option.values.first[index],
+                    isNormal: !isNowPlaying,
+                  ),
+                  separatorBuilder: (context, index) => Container(
+                    width: isNowPlaying ? 20 : 10,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget MovieCell(Result movie, {bool isNormal = true}) {
+    return InkWell(
+      onTap: () => showDetails(movie),
+      child: Container(
+        child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                height: isNormal ? 160 : 250,
+                width: isNormal ? 120 : 160,
+                child: movie.posterPath != null
+                    ? Hero(
+                        tag: movie.hashCode,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: FadeInImage.memoryNetwork(
+                            fit: BoxFit.fill,
+                            placeholder: kTransparentImage,
+                            image: isNormal
+                                ? 'https://image.tmdb.org/t/p/w185${movie.posterPath}'
+                                : 'https://image.tmdb.org/t/p/w342${movie.posterPath}',
+                          ),
+                        ),
+                      )
+                    : null,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(.5),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              isNormal
+                  ? Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(5),
+                          child: SizedBox(
+                            width: isNormal ? 120 : 160,
+                            child: Text(
+                              movie.title,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              softWrap: true,
+                              overflow: TextOverflow.fade,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 17),
+                            ),
+                          ),
+                        ),
+                        RankDisplayWidget(movie.voteAverage),
+                      ],
+                    )
+                  : Container(),
+            ]),
       ),
     );
   }
 
   Widget _getMovieImage(BuildContext context, int index) {
-    var selectedMovie = homestore.movies[index];
+    // var selectedMovie = homestore.movies[index];
 
-    return Container(
-      child: Stack(
-        children: <Widget>[
-          Container(
-            color: Colors.black.withOpacity(0.9),
-            height: 200,
-            child: Center(
-              child: SpinKitCubeGrid(
-                color: Colors.red,
-                size: 40,
-              ),
-            ),
-          ),
-          Container(
-            child: FadeInImage.memoryNetwork(
-              placeholder: kTransparentImage,
-              image: selectedMovie.backdropPath != null
-                  ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
-                  : 'https://www.movieinsider.com/images/none_175px.jpg',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPage(BuildContext context) {
-    return Observer(
-      builder: (_) => SmartRefresher(
-            controller: smController,
-            enablePullDown: false,
-            enablePullUp: false,
-            onRefresh: (f) {
-              // homestore.getMovies(homestore.selectedMovieOption);
-            },
-            child: ListView(
-              children: <Widget>[
-                _getWelcomeBlock(context),
-                _getRecommendedHeader(context),
-                _getRecommendedList(context),
-              ],
-            ),
-          ),
-    );
+    // return Container(
+    //   child: Stack(
+    //     children: <Widget>[
+    //       Container(
+    //         color: Colors.black.withOpacity(0.9),
+    //         height: 200,
+    //         child: Center(
+    //           child: SpinKitCubeGrid(
+    //             color: Colors.red,
+    //             size: 40,
+    //           ),
+    //         ),
+    //       ),
+    //       Container(
+    //         child: FadeInImage.memoryNetwork(
+    //           placeholder: kTransparentImage,
+    //           image: selectedMovie.backdropPath != null
+    //               ? 'https://image.tmdb.org/t/p/w780${selectedMovie.backdropPath}'
+    //               : 'https://www.movieinsider.com/images/none_175px.jpg',
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // );
   }
 }

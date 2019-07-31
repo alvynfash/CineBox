@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class RankDisplayWidget extends StatelessWidget {
   final double _rank;
+  final double size;
 
-  RankDisplayWidget(this._rank);
+  RankDisplayWidget(this._rank, {this.size = 15});
 
   @override
   Widget build(BuildContext context) {
@@ -45,36 +46,31 @@ class RankDisplayWidget extends StatelessWidget {
       default:
     }
 
-    return Row(
-      children: <Widget>[
-        CircleAvatar(
-          maxRadius: 15,
-          backgroundColor: _rankColor,
-          foregroundColor: _rankTextColor,
-          child: Text(
-            "${_rank.toString()}",
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
-          child: _getStars(starCount),
-        ),
-      ],
-    );
+    return _getStars(starCount);
   }
 
   Widget _getStars(int starCount) {
     var c = List<Widget>();
-
+    const int max = 5;
     for (var i = 0; i < starCount; i++) {
       c.add(Icon(
         Icons.star,
-        color: Colors.deepOrange,
-        size: 25,
+        color: Colors.white,
+        size: size,
       ));
     }
+
+    for (var i = 0; i < max - starCount; i++) {
+      c.add(Icon(
+        Icons.star_border,
+        color: Colors.white,
+        size: size,
+      ));
+    }
+
     return new Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: c,
     );
   }
